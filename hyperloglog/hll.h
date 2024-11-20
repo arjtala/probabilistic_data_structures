@@ -95,9 +95,9 @@ void HLL_add(HLL *hll, const void *data, size_t size) {
 	printf("%llu [%d]:\n", hash_val, k);
 	printBinary(hash_val, offset);
 	for (int _c = 0; _c < k; _c++) {
-		if (_c < hll->p) {
+		if (_c < (int)hll->p) {
 			printf("*");
-		} else if (_c == hll->p) {
+		} else if (_c == (int)hll->p) {
 			printf("|");
 		} else {
 			printf("_");

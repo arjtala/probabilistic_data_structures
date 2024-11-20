@@ -105,7 +105,7 @@ void printBits(BitVector *bitv, size_t size) {
 }
 
 void uint64_to_binary(uint64_t input, BitVector *bitv) {
-	printf("%d\n", 8*sizeof(uint64_t));
+	printf("%llu\n", (uint64_t)8*sizeof(uint64_t));
     if (bitv->size < 8*sizeof(uint64_t)) {
         fprintf(stderr, "BitVector size too small for %llu\n", input);
         exit(EXIT_FAILURE);

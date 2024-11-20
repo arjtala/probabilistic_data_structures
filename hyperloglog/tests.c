@@ -19,7 +19,7 @@ uint64_t isolatePBits(uint64_t num, int p, int q) {
     return p_bits;
 }
 
-int findMSBIndexFromLeft(uint64_t q_bits, int q) {
+int findMSBIndexFromLeft(uint64_t q_bits) {
     if (q_bits == 0) return 0; // No bits are set
     int msb_index = 0;
     while (q_bits != 0) {
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 	printBits(bitv, offset);
 
 	uint64_t i;
-	i= 1UL<<(sizeof(i)*8-1);
+	i = 1UL<<(sizeof(i)*8-1);
 	size_t c = 0;
 	while (i>0) {
 		printf("hash_value & i = %d\n", (hash_value & i)>0);
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 	printBinary(a, offset);
 	printf("b: %llu\n", b);
 	printBinary(b, offset);
-	int k = findMSBIndexFromLeft(b, q);
+	int k = findMSBIndexFromLeft(b);
 	printf("%llu [%d]:\n", hash_value, k);
 	printBinary(hash_value, offset);
 	for (int _c = 0; _c < k; _c++) {
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 			printf("_");
 		}
 	}
-	printf("^\n")
+	printf("^\n");
 
 	/* printf("Creating HLL with parameter `p`=%d\n", p); */
 	/* HLL *hll = HLL_default(p); */
