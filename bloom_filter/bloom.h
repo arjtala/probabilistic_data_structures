@@ -12,7 +12,7 @@
 
 typedef struct {
 	BitVector *bitv;
-	hash32_func *hash_functions;
+	hash64_func *hash_functions;
 	size_t num_functions;
 	size_t num_items;
 } BloomFilter;
@@ -36,7 +36,7 @@ BloomFilter *BloomFilter_new(size_t size, size_t num_functions, ...) {
 	filter->num_items = 0;
 	filter->bitv = createBitVector(size);
 	filter->num_functions = num_functions;
-	filter->hash_functions = malloc(sizeof(hash32_func)*num_functions);
+	filter->hash_functions = malloc(sizeof(hash64_func)*num_functions);
 
     if (NULL==filter->hash_functions) {
         fprintf(stderr, "Out of memory.\n");
@@ -45,14 +45,14 @@ BloomFilter *BloomFilter_new(size_t size, size_t num_functions, ...) {
 
 	va_start(argp, num_functions);
     for(size_t i = 0; i < num_functions; i++) {
-        filter->hash_functions[i] = va_arg(argp, hash32_func);
+        filter->hash_functions[i] = va_arg(argp, hash64_func);
     }
 	va_end(argp);
 	return filter;
 }
 
 BloomFilter *BloomFilter_default(size_t size) {
-	return BloomFilter_new(size, 2, djb2, sdbm);
+	return BloomFilter_new(size, 1, hash_64);
 }
 
 void BloomFilter_free(BloomFilter *filter) {
@@ -64,7 +64,7 @@ void BloomFilter_free(BloomFilter *filter) {
 void BloomFilter_put(BloomFilter *filter, const void *data, size_t size) {
 
 	for (size_t i =0; i < filter->num_functions; i++) {
-		uint32_t hash_val = filter->hash_functions[i](data, size);
+		uint64_t hash_val = filter->hash_functions[i](data, size);
 		setBit(filter->bitv, hash_val % filter->bitv->size);
 	}
 	filter->num_items++;
@@ -76,7 +76,7 @@ void BloomFilter_putStr(BloomFilter *filter, const char *str) {
 
 bool BloomFilter_exists(BloomFilter *filter, const void *data, size_t size) {
 	for (size_t i = 0; i < filter->num_functions; i++) {
-		uint32_t hash_val = filter->hash_functions[i](data, size);
+		uint64_t hash_val = filter->hash_functions[i](data, size);
 		if (!getBit(filter->bitv, hash_val % filter->bitv->size)) {
 			return false;
 		}

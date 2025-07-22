@@ -1,6 +1,7 @@
 #ifndef HLL_H
 #define HLL_H
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -12,7 +13,7 @@
 
 typedef struct {
 	uint8_t *registers;
-	hash32_func hash_function;
+	hash64_func hash_function;
 	size_t num_bits_per_register;
 	size_t num_functions;
 	size_t p; // Precision parameter that controls relative estimation error
@@ -24,41 +25,46 @@ HLL *HLL_new(size_t p, ...);
 HLL *HLL_default(size_t p);
 void freeHLL(HLL *hll);
 void HLL_add(HLL *hll, const void *data, size_t size);
-void HLL_count(HLL *hll);
+double HLL_count(HLL *hll);
 void HLL_merge(HLL *hll_a, HLL *hll_b);
-
+const int NUM_BITS_PER_REGISTER = 6;
 HLL *HLL_new(size_t p, ...) {
-
-	printf("Initializing HLL...\n");
 
 	va_list argp;
 
 	const size_t size = 8*sizeof(uint64_t);
+	if (p < 4 || p > size) {
+		fprintf(stderr, "Invalid parameter `p`");
+		exit(EXIT_FAILURE);
+	}
+
 	HLL *hll = malloc(sizeof(*hll));
 	if (NULL==hll) {
         fprintf(stderr, "Out of memory.\n");
         exit(EXIT_FAILURE);
 	}
-	hll->m = (1 << p);
+	hll->m = (1UL << p); // m = 2^p
 	hll->p = p;
 	hll->q = size - p;
+	hll->num_bits_per_register = NUM_BITS_PER_REGISTER; // 6 bits covers up to 64 (more than enough)
 
-	printf("Initializing %zu registers\n", hll->m);
 	hll->registers = malloc(hll->m * sizeof(uint8_t));
+	if (!hll->registers) {
+        fprintf(stderr, "Out of memory.\n");
+        exit(EXIT_FAILURE);
+	}
 	for (size_t i = 0; i < hll->m; i++) {
 		hll->registers[i] = 0;
 	}
 	va_start(argp, p);
-
-	printf("Setting hashing function\n");
-    hll->hash_function = va_arg(argp, hash32_func);
+    hll->hash_function = va_arg(argp, hash64_func);
 	va_end(argp);
 
 	return hll;
 }
 
 HLL *HLL_default(size_t p) {
-	return HLL_new(p, hash_64);
+	return HLL_new(p, murmur64);
 }
 
 void freeHLL(HLL *hll) {
@@ -66,52 +72,132 @@ void freeHLL(HLL *hll) {
 	free(hll);
 }
 
+static inline size_t rho(uint64_t w, size_t max) {
+	if (w == 0) return max + 1;
+    return __builtin_clzll(w) + 1; // count leading zeros
+}
+
 void HLL_add(HLL *hll, const void *data, size_t size) {
-	printf("Hashing input\n");
+	if (!hll) {
+        fprintf(stderr, "Hyperloglog not intialized.\n");
+        exit(EXIT_FAILURE);
+	}
+	if (!data) {
+        fprintf(stderr, "No data provided.\n");
+		return;
+	}
+	const size_t hash_size = 8 * sizeof(uint64_t);
+
 	uint64_t hash_val = hll->hash_function(data, size);
 
-	uint64_t a = (hash_val >> hll->q) & ((1ULL << hll->p) - 1);
-	uint64_t b = hash_val & ((1ULL << hll->q) - 1);
-
-	int offset = 8*sizeof(uint64_t);
-	printf("Offset: %d\n", offset);
-	int k = msb_position(b, offset);
-	if (k < 0) {
-		k = hll->q+1;
+	// j = 1 + <x_1 x_2 ... x_b>_2
+    // Extract the first p bits and add 1
+	uint64_t j = hash_val >> (hash_size - hll->p); // Now j ∈ [0, m-1]
+	if (j >= hll->m) {
+		fprintf(stderr, "BUG: j out of range: %llu\n", (unsigned long long)j);
+		exit(1);
 	}
 
-	printf("a: %llu\n", a);
-	printBinary(a, offset);
-	printf("b: %llu\n", b);
-	printBinary(b, offset);
+	// w = x_{b+1} x_{b+2} ...
+    // Extract the remaining q bits
+	uint64_t w = hash_val << hll->p;
 
-    /* int k = hll->q + 1; */
-    /* while (k > 0 && !((hash_val >> (k - 1)) & 1)) { */
-    /*     k--; */
-    /* } */
-    int i = 1 + a;
-	// int i = hash_val & (hll->m - 1);
+	// M[j] = max(M[j], p(w))
+    size_t p_w = rho(w, hll->q);
 
-	printf("%llu [%d]:\n", hash_val, k);
-	printBinary(hash_val, offset);
-	for (int _c = 0; _c < k; _c++) {
-		if (_c < (int)hll->p) {
-			printf("*");
-		} else if (_c == (int)hll->p) {
-			printf("|");
-		} else {
-			printf("_");
-		}
+	// Ensure p_w fits in our register size
+    if (p_w > (1ULL << hll->num_bits_per_register) - 1) {
+        p_w = (1ULL << hll->num_bits_per_register) - 1;
+    }
+
+	// Update register with maximum
+	if (p_w > hll->registers[j]) {
+		hll->registers[j] = (uint8_t)p_w;
 	}
-	printf("^\n");
+}
 
-	printf("Parameters: hash=%llu, a=%llu, b=%llu, p=%zu, q=%zu, k=%d, i=%d\n", hash_val, a, b, hll->p, hll->q, k, i);
+// Helper function to compute the bias correction constant a_m
+static double get_alpha_m(size_t m) {
+    switch (m) {
+        case 16:
+            return 0.673;
+        case 32:
+            return 0.697;
+        case 64:
+            return 0.709;
+        default:
+            if (m >= 128) {
+                return 0.7213 / (1.0 + 1.079 / (double)m);
+            } else {
+                // For m < 16, use the formula (though not recommended)
+                return 0.7213 / (1.0 + 1.079 / (double)m);
+            }
+    }
+}
 
-	printf("Updating register[%d]: %d < %d: ", i, hll->registers[i], k);
-	if (hll->registers[i] < k) {
-		printf("true\n");
-		hll->registers[i] = k;
-	} else {printf("false\n");}
+double HLL_count(HLL *hll) {
+    if (!hll) {
+        return 0.0;
+    }
+
+
+    double alpha_m = get_alpha_m(hll->m);
+    double sum = 0.0;
+    size_t zero_count = 0;
+
+    for (size_t i = 0; i < hll->m; ++i) {
+        uint8_t reg = hll->registers[i];
+        sum += 1.0 / (1ULL << reg); // 2^(-register value)
+        if (reg == 0) {
+            zero_count++;
+        }
+    }
+
+    double raw_estimate = alpha_m * hll->m * hll->m / sum;
+
+    // Small range correction: linear counting
+    if (raw_estimate <= (5.0 / 2.0) * hll->m && zero_count > 0) {
+        return hll->m * log((double)hll->m / zero_count);
+    }
+
+    // Large range correction (optional but common in full implementations)
+    const double two_to_64 = 18446744073709551616.0; // 2^64
+    if (raw_estimate > (1.0 / 30.0) * two_to_64) {
+        return -two_to_64 * log(1.0 - (raw_estimate / two_to_64));
+    }
+
+    return raw_estimate;
+}
+
+HLL *HLL_merge_copy(const HLL *a, const HLL *b) {
+    if (!a || !b) {
+        fprintf(stderr, "Error: One or both HLL inputs are NULL.\n");
+        return NULL;
+    }
+
+    if (a->p != b->p || a->m != b->m) {
+        fprintf(stderr, "Error: HLLs have incompatible precision or size.\n");
+        return NULL;
+    }
+
+    if (a->hash_function != b->hash_function) {
+        fprintf(stderr, "Warning: HLLs use different hash functions. Proceeding anyway.\n");
+    }
+
+    // Create a new HLL instance with the same parameters
+    HLL *merged = HLL_new(a->p, a->hash_function);
+    if (!merged) {
+        fprintf(stderr, "Error: Failed to allocate merged HLL.\n");
+        return NULL;
+    }
+
+    // Take the element-wise maximum of the registers
+    for (size_t i = 0; i < merged->m; ++i) {
+        merged->registers[i] = (a->registers[i] > b->registers[i]) ?
+                                a->registers[i] : b->registers[i];
+    }
+
+    return merged;
 }
 
 #endif

@@ -78,7 +78,7 @@ void test_bitvector_display(void) {
 	printBits(bv, sizeOfExpected);
 
 	printf("Clear position 3:\n");
-    flipBit(bv, 3); // Clear bit at index 7
+    flipBit(bv, 3); // Flip bit at index 3
 	flipExpectedValue(expected, 3, sizeOfExpected);
 	printf("Expected: ");
 	printf("%s\n", expected);
@@ -104,9 +104,9 @@ void test_bitvector_values(void) {
 
 void test_bloom_filter(void) {
 	bool exp, val;
-    BloomFilter *filter = BloomFilter_default(1024);
+    BloomFilter *filter = BloomFilter_default(64*8);
 
-	uint32_t x = 9;
+	uint64_t x = 9;
 	BloomFilter_put(filter, &x, sizeof(x));
 	val = BloomFilter_exists(filter, &x, sizeof(x));
 	exp = true;
@@ -124,13 +124,8 @@ void test_bloom_filter(void) {
 	char data[] = "abc";
 	size_t data_len = strlen(data);
 	size_t N = 8;
-	uint32_t hash = sdbm(data, data_len);
-	printf("Hash: %d (%zu)", hash, hash % N);
-	/* printf("["); */
-	/* for (size_t i = 0; i < sizeof(hash); i++) { */
-	/* 	printf("%d ", hash[i]); */
-	/* } */
-	/* printf("]\n"); */
+	uint64_t hash = sdbm(data, data_len);
+	printf("Hash: %llu (%llu)", hash, hash % N);
 
 	BitVector *tmp_bit = createBitVector(N);
 	setBit(tmp_bit, hash % N);
