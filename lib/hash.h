@@ -57,12 +57,12 @@ uint64_t fnv_64(void *buf, size_t len, uint64_t hval) {
     return hval;
 }
 
-uint64_t murmur64(const void *key, size_t len) {
+uint64_t murmur64(const void *key, size_t len, uint64_t seed) {
     const uint8_t *data = (const uint8_t *)key;
     const int nblocks = len / 16;
 
-    uint64_t h1 = 0;
-    uint64_t h2 = 0;
+    uint64_t h1 = seed;
+    uint64_t h2 = seed;
 
     const uint64_t c1 = 0x87c37b91114253d5ULL;
     const uint64_t c2 = 0x4cf5ad432745937fULL;

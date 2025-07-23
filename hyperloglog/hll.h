@@ -34,7 +34,7 @@ HLL *HLL_new(size_t p, ...) {
 
 	const size_t size = 8*sizeof(uint64_t);
 	if (p < 4 || p > size) {
-		fprintf(stderr, "Invalid parameter `p`");
+		fprintf(stderr, "Invalid parameter 4 < %zu < p=%zu", p, size);
 		exit(EXIT_FAILURE);
 	}
 

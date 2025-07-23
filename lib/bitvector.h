@@ -1,20 +1,12 @@
 #ifndef BITVECTOR_H
 #define BITVECTOR_H
 
+#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-/*
-To implement a Bloom filter we need an auxilary data
-structure which helps us manipulate bits. This data structure
-compactly stores bits.
-
-https://en.wikipedia.org/wiki/Bit_array
-**/
-
-#define BITS_PER_BYTE (sizeof(unsigned int) * 8)
-#define BITS_IN_TYPE(type) (BITS_PER_BYTE * (sizeof(type)))
+#define BITS_IN_TYPE(type) (CHAR_BIT * sizeof(type))
 
 typedef struct {
 	uint64_t *data;
@@ -24,16 +16,16 @@ typedef struct {
 BitVector *createBitVector(size_t num_bits) {
 	BitVector *bitv = malloc(sizeof(BitVector));
 	if (bitv == NULL) {
+		perror("Failed to allocate BitVector struct");
 		return NULL;
 	}
 
-	size_t mem_size = num_bits / BITS_IN_TYPE(uint64_t);
-    if (!(num_bits%BITS_IN_TYPE(u_int64_t))) {
-        mem_size++;
-    }
-	bitv->data = calloc(mem_size, sizeof(*(bitv->data)));
+	size_t bits_per_unit = BITS_IN_TYPE(uint64_t);
+	size_t num_units = (num_bits + bits_per_unit - 1) / bits_per_unit;
+	bitv->data = calloc(num_units, sizeof(uint64_t));
     if (NULL==bitv->data) {
-        fprintf(stderr, "Out of memory.\n");
+        fprintf(stderr, "Failed to allocate BitVector data.\n");
+		free(bitv);
         exit(EXIT_FAILURE);
     }
     bitv->size = num_bits;

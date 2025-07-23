@@ -1,15 +1,16 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c99 -I../lib
+CFLAGS = -Wall -Wextra -Werror -std=c99 -I../lib -I../bloom_filter
 LOCAL_HEADERS = $(wildcard *.h)
 SHARED_HEADERS = $(wildcard ../lib/*.h)
-HEADERS = $(LOCAL_HEADERS) $(SHARED_HEADERS)
+BLOOM_HEADERS = $(wildcard ../bloom_filter/*.h)
+HEADERS = $(BLOOM_HEADERS) $(LOCAL_HEADERS) $(SHARED_HEADERS)
 SRCS = $(wildcard *.c)
 LIBS = $(filter-out tests.c, $(SRCS))
 OBJ = $(LIBS:.c=.o)
 DEPS = $(LIBS:.c=.o)
 
 # Library name
-LIB = bloom_filter.a
+LIB = hll.a
 
 # Test executable
 TEST_EXEC = tests

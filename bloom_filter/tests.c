@@ -1,22 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "bitvector.h"
-#include "hash.h"
 #include "bloom.h"
+#include "hash.h"
+#include "utilities.h"
 
-#define SEPARATOR "\n\n******************************\n"
-#define ASSERT(condition, expected, value) do {	\
-	printf("%d == %d\n", expected, value);			\
-    if (!(condition)) { \
-        fprintf(stderr, "!!! Assertion failed: expected %d but got %d\n", expected, value); \
-		exit(EXIT_FAILURE); \
-    } \
-} while(0)
-
-
-void printSeparator(void) {
-	printf("%s", SEPARATOR);
-}
 
 void printArray(int *arr) {
 	printf("[");
@@ -130,6 +118,17 @@ void test_bloom_filter(void) {
 	BitVector *tmp_bit = createBitVector(N);
 	setBit(tmp_bit, hash % N);
 	printBits(tmp_bit, N);
+
+	const int num_elements = 1000;
+	printf("Inserting %d more elements...\n", num_elements);
+	for (int i = 0; i < num_elements; ++i) {
+		char buf[32];
+		snprintf(buf, sizeof(buf), "elem_%d", i);
+		BloomFilter_putStr(filter, buf);
+	}
+
+	printf("Bitvector utilization: %.2f%%\n",
+		   100.0 * countBitsSet(filter->bitv) / filter->bitv->size);
 }
 
 int main(void) {
