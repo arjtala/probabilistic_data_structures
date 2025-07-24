@@ -93,6 +93,18 @@ Bitvector utilization: 97.46%
 
 These tests will check for insertion into the HLL; counting the approximate number of elements; and merging two HLLs. The final test reads from a text file of phrases, one per line, with a 30% rate of repetition.
 
+#### Performance
+
+```
+| Entries | Python (M4 Pro) | C (M4 Pro) | Python (Broadwell) | C (Broadwell) |
+|----------|----------|----------|----------|----------|
+| 50,000    | 0.002   | 0.0038   | 0.009   | 0.009   |
+| 500,000    | 0.037   | 0.034   | 0.172   | 0.090   |
+| 5,000,000    | 0.537   | 0.320  | 2.516  | 0.942  |
+| 50,000,000    | 7.070  | 3.859  | 33.151  | 9.165  |
+| 500,000,000    | DNF  | 71.120  | 447.314  | 87.947  |
+```
+
 ###  Tests
 
 To execute the test, build the binary and pass in two arguments:
@@ -140,6 +152,31 @@ Loaded 50000 sentences
 Bloom filter Bitvector utilization: 0.05%
 Inserted 50000 sentences (35000 unique)
 Number of elements ~= 34986.454247
+
+
+******************************
+[test_time_insertion]
+Processed 50,000 records in 0.0038 seconds, estimated cardinality of 35007.498099
+
+
+******************************
+[test_time_insertion]
+Processed 500,000 records in 0.0340 seconds, estimated cardinality of 350064.868616
+
+
+******************************
+[test_time_insertion]
+Processed 5,000,000 records in 0.3203 seconds, estimated cardinality of 3500321.562067
+
+
+******************************
+[test_time_insertion]
+Processed 50,000,000 records in 3.8585 seconds, estimated cardinality of 35001306.792448
+
+
+******************************
+[test_time_insertion]
+Processed 500,000,000 records in 71.1195 seconds, estimated cardinality of 350003075.454591
 ```
 
 #### Generating phrases

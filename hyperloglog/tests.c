@@ -37,12 +37,10 @@ void test_time_insertion(int p, char *filename) {
 
 void test_batch_phrases(int p, const char *filename) {
 
-	printf("1");
 	const size_t size = (1ULL << p)*sizeof(uint64_t);
 	BloomFilter *filter = BloomFilter_default(size);
 	HLL *hll = HLL_default(p);
 
-	printf("2");
     long count;
 	char **sentences = load_sentences(filename, &count);
 	if (!sentences) {
@@ -219,7 +217,7 @@ int main(int argc, char *argv[]) {
     for (int i = 5; i <= 9; ++i) {
         snprintf(dynamic_filename, sizeof(dynamic_filename), "%s_%d_half%s", prefix, i, suffix);
         snprintf(f, sizeof(f), dynamic_filename, i);
-        //RUN_TEST(test_time_insertion, p, f);
+        RUN_TEST(test_time_insertion, p, f);
     }
 
 	return 0;

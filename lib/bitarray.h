@@ -98,9 +98,9 @@ void printBits(BitArray *bitv, size_t size) {
 }
 
 void uint64_to_binary(uint64_t input, BitArray *bitv) {
-	printf("%lu\n", (uint64_t)8*sizeof(uint64_t));
+	printf("%llu\n", (uint64_t)8*sizeof(uint64_t));
     if (bitv->size < 8*sizeof(uint64_t)) {
-        fprintf(stderr, "BitArray size too small for %lu\n", input);
+        fprintf(stderr, "BitArray size too small for %llu\n", input);
         exit(EXIT_FAILURE);
     }
     for (int i = 63; i >= 0; --i) {
