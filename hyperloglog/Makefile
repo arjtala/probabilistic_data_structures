@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c99 -I../lib -I../bloom_filter
+CFLAGS = -Wall -Wextra -Werror -std=c99 -O3 -march=native -flto -ffast-math -mtune=native -I../lib -I../bloom_filter
+LDFLAGS = -flto
 LOCAL_HEADERS = $(wildcard *.h)
 SHARED_HEADERS = $(wildcard ../lib/*.h)
 BLOOM_HEADERS = $(wildcard ../bloom_filter/*.h)

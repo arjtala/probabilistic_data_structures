@@ -1,10 +1,38 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <time.h>
 #include "bloom.h"
 #include "hll.h"
 #include "utilities.h"
 
+
+void test_time_insertion(int p, char *filename) {
+	HLL *hll = HLL_default(p);
+
+    long count;
+	char count_formatted[32];
+
+	char **sentences = load_sentences(filename, &count);
+	format_with_commas(count, count_formatted);
+
+	if (!sentences) {
+		fprintf(stderr, "Failed to load sentences from file\n");
+		exit(EXIT_FAILURE);
+	}
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+	for (int i = 0; i < count; ++i) {
+		HLL_add(hll, sentences[i], strlen(sentences[i]));
+		free(sentences[i]);
+	}
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	double elapsed_sec = (end.tv_sec - start.tv_sec) +
+		(end.tv_nsec - start.tv_nsec) / 1e9;
+	double num_elements = HLL_count(hll);
+	printf("Processed %s records in %.4f seconds, estimated cardinality of %f\n",
+		   count_formatted, elapsed_sec, num_elements);
+}
 
 void test_batch_phrases(int p, const char *filename) {
 
@@ -12,13 +40,13 @@ void test_batch_phrases(int p, const char *filename) {
 	BloomFilter *filter = BloomFilter_default(size);
 	HLL *hll = HLL_default(p);
 
-    int count;
+    long count;
 	char **sentences = load_sentences(filename, &count);
 	if (!sentences) {
 		fprintf(stderr, "Failed to load sentences from file\n");
 		exit(EXIT_FAILURE);
 	}
-	printf("Loaded %d sentences\n", count);
+	printf("Loaded %ld sentences\n", count);
 
 	size_t unique = 0;
 	for (int i = 0; i < count; ++i) {
@@ -59,7 +87,7 @@ void test_batch_phrases(int p, const char *filename) {
 	double utilization = 100.0 * (double)countBitsSet(filter->bitv) / (double)filter->bitv->size;
 	printf("Bloom filter BitArray utilization: %.2f%%\n", utilization);
 
-	printf("Inserted %d sentences (%zu unique)\n", count, unique);
+	printf("Inserted %ld sentences (%zu unique)\n", count, unique);
 	double num_elements = HLL_count(hll);
 	printf("Number of elements ~= %f\n", num_elements);
 	freeHLL(hll);
@@ -163,6 +191,12 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(test_hll_accuracy, p);
 	RUN_TEST(test_hll_duplicates, p);
 	RUN_TEST(test_batch_phrases, p, filename);
+
+	char f[64];
+    for (int i = 5; i <= 9; ++i) {
+        snprintf(f, sizeof(f), "phrases_%d_half.txt", i);
+        RUN_TEST(test_time_insertion, p, f);
+    }
 
 	return 0;
 }
