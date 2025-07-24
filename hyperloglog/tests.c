@@ -31,8 +31,9 @@ void test_time_insertion(int p, char *filename) {
 	double elapsed_sec = (end.tv_sec - start.tv_sec) +
 		(end.tv_nsec - start.tv_nsec) / 1e9;
 	double num_elements = HLL_count(hll);
-	printf("Processed %s records in %.4f seconds, estimated cardinality of %f\n",
-		   count_formatted, elapsed_sec, num_elements);
+	double memory_footprint = HLL_memory_usage(hll) / 1024.0 / 1024.0;
+	printf("Processed %s records in %.4f seconds, memory ~= %0.4f, cardinality ~= %f\n",
+		   count_formatted, elapsed_sec, memory_footprint, num_elements);
 }
 
 void test_batch_phrases(int p, const char *filename) {

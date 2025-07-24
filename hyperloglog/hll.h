@@ -71,6 +71,17 @@ void freeHLL(HLL *hll) {
 	free(hll);
 }
 
+size_t HLL_memory_usage(const HLL *hll) {
+    if (!hll) {
+        fprintf(stderr, "Hyperloglog not intialized.\n");
+        exit(EXIT_FAILURE);
+	}
+
+    size_t static_size = sizeof(HLL);                         // struct itself
+    size_t registers_size = hll->m * sizeof(uint8_t);         // register array
+    return static_size + registers_size;
+}
+
 void HLL_add(HLL *hll, const void *data, size_t size) {
 	if (!hll) {
         fprintf(stderr, "Hyperloglog not intialized.\n");
