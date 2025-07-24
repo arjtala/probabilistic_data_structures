@@ -48,10 +48,7 @@ for a Bloom filter with:
 
 The approximate false positive probability, \( P_{fp} \), is given by:
 
-\[
-P_{fp} \approx \left(1 - e^{-kn/m} \right)^k
-\]
-
+$$FPR = \left(1 - e^{-kn/m}\right)^k$$
 
 ### Tests
 
