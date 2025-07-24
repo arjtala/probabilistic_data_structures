@@ -12,6 +12,11 @@
 		exit(EXIT_FAILURE); \
     } \
 } while(0)
+#define RUN_TEST(fn, ...) do {    \
+    printSeparator();             \
+    printf("[%s]\n", #fn);        \
+    fn(__VA_ARGS__);              \
+} while (0)
 
 void printSeparator(void) {
 	printf("%s", SEPARATOR);

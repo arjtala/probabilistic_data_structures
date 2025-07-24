@@ -1,21 +1,116 @@
 # Implementing probabilistic data structures in C
 
-## Bloom Filters
+## Utilities
 
-To implement a Bloom filter we need an auxilary data, structure which helps us manipulate bits. This data structure compactly stores bits.
+To begin with, we need a data structure which helps us store and manipulate bits, the [Bit Array](https://en.wikipedia.org/wiki/Bit*array):
 
-## HyperLogLog
+```C
+typedef struct {
+	uint64_t *data;
+	size_t size;
+} BitVector;
+```
+
+This struct contains the actual byte data and a `size` parameter, which determines the number of elements. To track the number of bits per unit, we define `BITS_IN_TYPE`, which multiplies the size of a given `type` by [`CHAR_BIT`](https://en.cppreference.com/w/cpp/types/climits.html) (the number of bits in char, which these days, is 8 bits for almost all architectures but some older machines used to have a 7-bit byte). We just need the ability to get, set, flip, and clear any given bit, and a few helper utilities to print and convert between binary representation.
+
+One important function is the `msb_position`, which finds the most significant bit using [`__builtin_ctzll`](https://www.geeksforgeeks.org/c/builtin-functions-gcc-compiler/), i.e. the first non-zero element when counting from the left. This is useful later for the Hyperloglog data structure.
+
+Another important concept here is hashing. We could, of course, use a standard 64-bit implementation such as the [Fowler–Noll–Vo](https://en.wikipedia.org/wiki/Fowler–Noll–Vo_hash_function#FNV-1a_hash):
+
+```C
+uint64_t hash_64(const void *buff, size_t len) {
+	uint64_t seed = 14695981039346656037ULL;
+	uint64_t prime = 1099511628211ULL;
+    const uint8_t *data = buff;
+    uint64_t h = seed;
+    for (size_t i = 0; i < len; ++i) {
+        h ^= data[i];
+        h *= prime;
+    }
+    return h;
+}
+```
+
+Here, we start with a seed value. Then for each byte in the data to be hashed, we XOR it into the current hash, and then multiply the result by a prime number to "mix" the bits. This isn't cryptographically secure, but quite fast and has decent uniformity (distributing input values relatively well).
+
+We do want to avoid collisions, so while still retaining performance and sacrificing cryptographic security, we can use a 64-bit [MurmurHash](https://en.wikipedia.org/wiki/MurmurHash), and in fact we can use it with two different seeds to help improve the data distribution--in the case of a Bloom filter this helps reduce false positives.
+
+## [Bloom Filter](https://en.wikipedia.org/wiki/Bloom*filter)
+
+A Bloom filter is a space-efficient probabilistic data structure used to test whether an element is possibly in a set or definitely not.
+
+To insert an item, we first compute `k` hash values of the item, and set the bits at those k positions in the bit vector. To check membership, we recompute the k hashes; if all the corresponding bits are set, the item might be in the set, and if any bit is not set, the item is definitely not in the set. Notice the term "may" in the first case--this is a probabilistic data structure and the false positive rate increases as more data is inserted. This happens because we have a fixed-size bit array and even with multiple hash functions we can end up with collisions in the bit-positions for different inputs.
+
+for a Bloom filter with:
+- \( n \) = number of inserted elements
+- \( m \) = number of bits in the bit array
+- \( k \) = number of hash functions
+
+The approximate false positive probability, \( P_{fp} \), is given by:
+
+\[
+P_{fp} \approx \left(1 - e^{-kn/m} \right)^k
+\]
+
+
+### Tests
+
+To execute the tests, just build the binary:
+```bash
+make test && ./tests
+```
+
+Output:
+```
+******************************
+[test_bitvector_display]
+Built expected bitvector (allocated size = 8): [ 0 0 0 0 0 0 ]
+Set position 3:
+Expected: [ 0 0 0 1 0 0 ]
+Result:   [ 0 0 0 1 0 0 ]
+Flip position 5:
+Expected: [ 0 0 0 1 0 1 ]
+Result:   [ 0 0 0 1 0 1 ]
+Clear position 3:
+Expected: [ 0 0 0 0 0 1 ]
+Result:   [ 0 0 0 0 0 1 ]
+
+
+******************************
+[test_bitvector_values]
+Setting bit in position 5: 1 == 1
+Clearing bit in position 5: 0 == 0
+
+
+******************************
+[test_bloom_filter]
+Inserting value 9 into filter: 1 == 1
+Checking existence of value `abc` in filter: 0 == 0
+Inserting value `abc` into filter: 1 == 1
+Hash: 417419622498 (2)[ 0 0 1 0 0 0 0 0 ]
+Inserting 1000 more elements...
+Bitvector utilization: 97.46%
+```
+
+## [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog)
 
 These tests will check for insertion into the HLL; counting the approximate number of elements; and merging two HLLs. The final test reads from a text file of phrases, one per line, with a 30% rate of repetition.
 
 ###  Tests
+
+To execute the test, build the binary and pass in two arguments:
+    * `p`: The size parameter, such that `m = 2^p`
+	* `<text>`: Any data (e.g. text in quotes) that will be inserted in the datastructure
+	* Input text file: This is the file that contains tens of thousands of phrases with some rate of duplication (see below for generating this).
+
 ```bash
-❯ make clean && make test && ./tests 24 "arjangt is my username" phrases.txt
-rm -f *.o hll.a tests
-Creating HLL with parameter `p`=24
+make test && ./tests 24 "arjangt is my username" phrases.txt
 
-
+```
+Output:
+```
 ******************************
+[test_HLL]
 Number of elements ~= 0.000000
 Inserting `arjangt is my username` into HLL
 Number of elements ~= 1.000000
@@ -25,21 +120,36 @@ Number of elements ~= 21.000013
 
 
 ******************************
+[test_merge_two]
 Inserting `peanut butter` into HLL 1
 Inserting `banana` into HLL 2
 Merged count: ~2.00
 
 
 ******************************
+[test_hll_accuracy]
+True count: 100000, HLL estimate: 99993.39
+Relative error 0.0066%
+
+
+******************************
+[test_hll_duplicates]
+Estimate with 100,000 duplicates of same string: 1.00
+
+
+******************************
+[test_batch_phrases]
 Loaded 50000 sentences
 Bloom filter Bitvector utilization: 0.05%
 Inserted 50000 sentences (35000 unique)
 Number of elements ~= 34986.454247
 ```
 
+#### Generating phrases
+
 This was generated in Python using the following script.
 
-```Python
+```python
 import random
 
 # Word pools for generating sensible phrases
@@ -146,6 +256,7 @@ if __name__ == "__main__":
 		for phrase in phrases:
 			f.write(f"{phrase}\n")
 ```
+
 ```output
 Generated 50000 phrases with ~30.0% repeat rate.
 Total: 50000, Unique: 35000
@@ -162,10 +273,3 @@ First 10 phrases:
  9. The simple painting grows.
 10. The fresh beach fixes.
 ```
-
-
-## References
-	* [Bloom Filter](https://en.wikipedia.org/wiki/Bloom*filter)
-    * [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog)
-    * [Bit Array](https://en.wikipedia.org/wiki/Bit*array)
-	* [Distinct Elements in Stream](https://arxiv.org/abs/2301.10191) by Chakraborty et al.

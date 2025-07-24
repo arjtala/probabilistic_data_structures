@@ -57,7 +57,7 @@ void test_batch_phrases(int p, const char *filename) {
 		exit(EXIT_FAILURE);
 	}
 	double utilization = 100.0 * (double)countBitsSet(filter->bitv) / (double)filter->bitv->size;
-	printf("Bloom filter Bitvector utilization: %.2f%%\n", utilization);
+	printf("Bloom filter BitArray utilization: %.2f%%\n", utilization);
 
 	printf("Inserted %d sentences (%zu unique)\n", count, unique);
 	double num_elements = HLL_count(hll);
@@ -66,7 +66,6 @@ void test_batch_phrases(int p, const char *filename) {
 	free(sentences);
 	free_BloomFilter(filter);
 }
-
 
 void test_HLL(int p, const char *data) {
 	HLL *hll = HLL_default(p);
@@ -118,6 +117,36 @@ void test_merge_two(int p) {
 	freeHLL(hll2);
 }
 
+void test_hll_accuracy(int p) {
+    HLL *hll = HLL_default(p);
+    int true_count = 100000;
+
+	char buffer[64];
+	for (int i = 1; i < true_count; ++i) {
+		snprintf(buffer, sizeof(buffer), "item_%d", i);
+		HLL_add(hll, buffer, strlen(buffer));
+	}
+
+	double estimate = HLL_count(hll);
+	printf("True count: %d, HLL estimate: %.2f\n", true_count, estimate);
+	printf("Relative error %.4f%%\n", 100 * fabs(estimate - true_count) / true_count);
+	freeHLL(hll);
+}
+
+void test_hll_duplicates(int p) {
+	HLL *hll = HLL_default(p);
+	const char *value = "constant string";
+	size_t len = strlen(value);
+
+	for (int i = 0; i < 100000; ++i) {
+		HLL_add(hll, value, len);
+	}
+
+	double estimate = HLL_count(hll);
+	printf("Estimate with 100,000 duplicates of same string: %.2f\n", estimate);
+	freeHLL(hll);
+}
+
 int main(int argc, char *argv[]) {
     // Check if we have enough arguments
     if (argc < 2) {
@@ -125,21 +154,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-	(void)argc;
 	int p = atoi(argv[1]);
-	printf("Creating HLL with parameter `p`=%d\n", p);
-
 	const char *data = argv[2];
 	const char *filename = argv[3];
 
-	printSeparator();
-	test_HLL(p, data);
-
-	printSeparator();
-	test_merge_two(p);
-
-	printSeparator();
-	test_batch_phrases(p, filename);
+	RUN_TEST(test_HLL, p, data);
+	RUN_TEST(test_merge_two, p);
+	RUN_TEST(test_hll_accuracy, p);
+	RUN_TEST(test_hll_duplicates, p);
+	RUN_TEST(test_batch_phrases, p, filename);
 
 	return 0;
 }

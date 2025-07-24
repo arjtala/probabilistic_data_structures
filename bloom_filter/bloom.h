@@ -8,10 +8,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "hash.h"
-#include "bitvector.h"
+#include "bitarray.h"
 
 typedef struct {
-	BitVector *bitv;
+	BitArray *bitv;
 	hash64_func *hash_functions;
 	size_t num_functions;
 	size_t num_items;
@@ -34,7 +34,7 @@ BloomFilter *BloomFilter_new(size_t size, size_t num_functions, ...) {
         exit(EXIT_FAILURE);
     }
 	filter->num_items = 0;
-	filter->bitv = createBitVector(size);
+	filter->bitv = createBitArray(size);
 	filter->num_functions = num_functions;
 	filter->hash_functions = malloc(sizeof(hash64_func)*num_functions);
 
@@ -64,7 +64,7 @@ BloomFilter *BloomFilter_default(size_t size) {
 }
 
 void free_BloomFilter(BloomFilter *filter) {
-    freeBitVector(filter->bitv);
+    freeBitArray(filter->bitv);
     free(filter->hash_functions);
     free(filter);
 }
@@ -96,9 +96,9 @@ bool BloomFilter_strExists(BloomFilter *filter, const char *str) {
 	return BloomFilter_exists(filter, str, strlen(str));
 }
 
-size_t countBitsSet(BitVector *bitv) {
+size_t countBitsSet(BitArray *bitv) {
     if (!bitv || !bitv->data) {
-        fprintf(stderr, "Invalid BitVector pointer\n");
+        fprintf(stderr, "Invalid BitArray pointer\n");
         return 0;
     }
 

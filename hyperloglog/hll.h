@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "hash.h"
-#include "bitvector.h"
 
 typedef struct {
 	uint8_t *registers;
@@ -72,11 +71,6 @@ void freeHLL(HLL *hll) {
 	free(hll);
 }
 
-static inline size_t rho(uint64_t w, size_t max) {
-	if (w == 0) return max + 1;
-    return __builtin_clzll(w) + 1; // count leading zeros
-}
-
 void HLL_add(HLL *hll, const void *data, size_t size) {
 	if (!hll) {
         fprintf(stderr, "Hyperloglog not intialized.\n");
@@ -103,7 +97,7 @@ void HLL_add(HLL *hll, const void *data, size_t size) {
 	uint64_t w = hash_val << hll->p;
 
 	// M[j] = max(M[j], p(w))
-    size_t p_w = rho(w, hll->q);
+    size_t p_w = msb_position(w, hll->q);
 
 	// Ensure p_w fits in our register size
     if (p_w > (1ULL << hll->num_bits_per_register) - 1) {
