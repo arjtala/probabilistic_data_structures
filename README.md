@@ -95,8 +95,16 @@ These tests will check for insertion into the HLL; counting the approximate numb
 
 #### Performance
 
-```text
-| Entries | Python (M4 Pro) | C (M4 Pro) | Python (Broadwell) | C (Broadwell) | |-------------|-----------------|------------|---------------------|---------------| | 50,000 | 0.002 | 0.0038 | 0.009 | 0.009 | | 500,000 | 0.037 | 0.034 | 0.172 | 0.090 | | 5,000,000 | 0.537 | 0.320 | 2.516 | 0.942 | | 50,000,000 | 7.070 | 3.859 | 33.151 | 9.165 | | 500,000,000 | DNF | 71.120 | 447.314 | 87.947 |
+The following comparisons are between Python, where we loop over the list of phrases and insert them into a set, and C, using HLL. They were done on an Apple MacBook Pro with an M4 Pro and on Linux using 2 x Intel Core (Broadwell) (72) @ 2.00 GHz. The times are in seconds.
+
+```
+| Entries | Python (M4 Pro) | C (M4 Pro) | Python (Broadwell) | C (Broadwell) |
+|---|---|---|---|---|
+| 50,000 | 0.002 | 0.0038 | 0.009 | 0.009 |
+| 500,000 | 0.037 | 0.034 | 0.172 | 0.090 |
+| 5,000,000 | 0.537 | 0.320 | 2.516 | 0.942 |
+| 50,000,000 | 7.070 | 3.859 | 33.151 | 9.165 |
+| 500,000,000 | DNF | 71.120 | 447.314 | 87.947 |
 ```
 
 ###  Tests
