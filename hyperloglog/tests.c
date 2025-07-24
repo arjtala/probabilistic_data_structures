@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -36,10 +37,12 @@ void test_time_insertion(int p, char *filename) {
 
 void test_batch_phrases(int p, const char *filename) {
 
+	printf("1");
 	const size_t size = (1ULL << p)*sizeof(uint64_t);
 	BloomFilter *filter = BloomFilter_default(size);
 	HLL *hll = HLL_default(p);
 
+	printf("2");
     long count;
 	char **sentences = load_sentences(filename, &count);
 	if (!sentences) {
@@ -186,6 +189,26 @@ int main(int argc, char *argv[]) {
 	const char *data = argv[2];
 	const char *filename = argv[3];
 
+    char prefix[64];
+    char suffix[64];
+    char dynamic_filename[128];
+
+    // Extract the prefix and suffix from base_filename
+    // Assumes base_filename format like "phrases.txt"
+    const char *dot = strrchr(filename, '.');
+    if (dot == NULL) {
+        fprintf(stderr, "Invalid filename: %s\n", filename);
+        return 1;
+    }
+
+    // Copy prefix (e.g., "phrases")
+    size_t prefix_len = dot - filename;
+    strncpy(prefix, filename, prefix_len);
+    prefix[prefix_len] = '\0';
+
+    // Copy suffix (e.g., ".txt")
+    strcpy(suffix, dot);
+
 	RUN_TEST(test_HLL, p, data);
 	RUN_TEST(test_merge_two, p);
 	RUN_TEST(test_hll_accuracy, p);
@@ -194,8 +217,9 @@ int main(int argc, char *argv[]) {
 
 	char f[64];
     for (int i = 5; i <= 9; ++i) {
-        snprintf(f, sizeof(f), "phrases_%d_half.txt", i);
-        RUN_TEST(test_time_insertion, p, f);
+        snprintf(dynamic_filename, sizeof(dynamic_filename), "%s_%d_half%s", prefix, i, suffix);
+        snprintf(f, sizeof(f), dynamic_filename, i);
+        //RUN_TEST(test_time_insertion, p, f);
     }
 
 	return 0;

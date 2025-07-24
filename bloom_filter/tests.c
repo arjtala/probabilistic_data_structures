@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <string.h>
 #include "bitarray.h"
@@ -105,7 +106,7 @@ void test_bloom_filter(void) {
 	BloomFilter_put(filter, &x, sizeof(x));
 	val = BloomFilter_exists(filter, &x, sizeof(x));
 	exp = true;
-	printf("Inserting value %llu into filter: ", x);
+	printf("Inserting value %lu into filter: ", x);
 	ASSERT(exp == val, exp, val);
 
 	exp = false;
@@ -123,7 +124,7 @@ void test_bloom_filter(void) {
 	size_t data_len = strlen(data);
 	size_t N = 8;
 	uint64_t hash = sdbm(data, data_len);
-	printf("Hash: %llu (%llu)", hash, hash % N);
+	printf("Hash: %lu (%lu)", hash, hash % N);
 
 	BitArray *tmp_bit = createBitArray(N);
 	setBit(tmp_bit, hash % N);

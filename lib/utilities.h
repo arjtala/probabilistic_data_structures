@@ -1,9 +1,10 @@
+#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define MAX_LINE_LEN 2048
-#define MAX_LINES 100000000000
+#define MAX_LINES 1000000000
 #define SEPARATOR "\n\n******************************\n"
 #define ASSERT(condition, expected, value) do {	\
 	printf("%d == %d\n", expected, value);			\
@@ -25,6 +26,7 @@ void printSeparator(void) {
 char **load_sentences(const char *filename, long *out_count) {
     FILE *file = fopen(filename, "r");
     if (!file) {
+        printf("%s", filename);
         perror("Failed to open file");
 		exit(EXIT_FAILURE);
     }
@@ -54,7 +56,7 @@ char **load_sentences(const char *filename, long *out_count) {
         }
         count++;
         if (count >= MAX_LINES) {
-            fprintf(stderr, "Too many lines (max %ld)\n", MAX_LINES);
+            fprintf(stderr, "Too many lines (max %d)\n", MAX_LINES);
             break;
         }
     }

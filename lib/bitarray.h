@@ -63,7 +63,7 @@ void clearBit(BitArray *bitv, size_t index) {
 
 
 void flipBit(BitArray *bitv, size_t index) {
-	if (index >= bitv->size) {
+	if (!bitv || index >= bitv->size) {
         fprintf(stderr, "Out of bounds bit_idx=%zu, vect->size=%zu\n",
                             index, bitv->size);
         exit(EXIT_FAILURE);
@@ -71,7 +71,7 @@ void flipBit(BitArray *bitv, size_t index) {
     size_t chunk_offset = index /  BITS_IN_TYPE(uint64_t);
     size_t bit_offset = index & (BITS_IN_TYPE(uint64_t)-1);
     uint64_t *byte = &(bitv->data[chunk_offset]);
-	*byte &= *byte ^= ((uint64_t)1) << bit_offset;
+	*byte ^= ((uint64_t)1) << bit_offset;
 }
 
 int getBit(BitArray *bitv, size_t index) {
@@ -98,9 +98,9 @@ void printBits(BitArray *bitv, size_t size) {
 }
 
 void uint64_to_binary(uint64_t input, BitArray *bitv) {
-	printf("%llu\n", (uint64_t)8*sizeof(uint64_t));
+	printf("%lu\n", (uint64_t)8*sizeof(uint64_t));
     if (bitv->size < 8*sizeof(uint64_t)) {
-        fprintf(stderr, "BitArray size too small for %llu\n", input);
+        fprintf(stderr, "BitArray size too small for %lu\n", input);
         exit(EXIT_FAILURE);
     }
     for (int i = 63; i >= 0; --i) {
