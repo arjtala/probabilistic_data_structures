@@ -97,13 +97,19 @@ These tests will check for insertion into the HLL; counting the approximate numb
 
 The following comparisons are between Python, where we loop over the list of phrases and insert them into a set, and C, using HLL. They were done on an Apple MacBook Pro with an M4 Pro and on Linux using 2 x Intel Core (Broadwell) (72) @ 2.00 GHz. The times are in seconds.
 
-| Entries | Python (M4 Pro) | C (M4 Pro) | Python (Broadwell) | C (Broadwell) |
-|---|---|---|---|---|
-| 50,000 | 0.002 | 0.0038 | 0.009 | 0.009 |
-| 500,000 | 0.037 | 0.034 | 0.172 | 0.090 |
-| 5,000,000 | 0.537 | 0.320 | 2.516 | 0.942 |
-| 50,000,000 | 7.070 | 3.859 | 33.151 | 9.165 |
-| 500,000,000 | DNF | 71.120 | 447.314 | 87.947 |
+| | | Time (sec) | | Memory (MB) | |
+| Entries | Architecture | Python | C | Python | C |
+|---|---|---|---|---|---|
+| 50,000 | M4 | 0.0023 | 0.0028 | 2.9760 | 16 |
+| 500,000 | M4 | 0.0426 | 0.0209  | 30.0523 | 16 |
+| 5,000,000 | M4 | 0.5237 | 0.1831 |308.8392 | 16 |
+| 50,000,000 | M4 | 7.4756 | 1.6286 | 3163.2682 | 16 |
+| 500,000,000 | M4 | DFN | 23.2104 | DNF | 16 |
+| 50,000 | Broadwell | 0.0069 | 0.0074 | 2.9760 | 16 |
+| 500,000 | Broadwell | 0.1741 | 0.0918 | 30.0562 | 16 |
+| 5,000,000 | Broadwell | 2.6876 | 0.7849 | 308.8372 | 16 |
+| 50,000,000 | Broadwell | 36.9856 | 9.1438 | 3163.2476 | 16 |
+| 500,000,000 | Broadwell | 425.5580 | 88.0892 | 31902.8512 | 16 |
 
 ###  Tests
 
