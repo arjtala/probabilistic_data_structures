@@ -100,26 +100,25 @@ The following comparisons are between Python, where we loop over the list of phr
 * Linux with 2 x Intel Core (Broadwell) (72) @ 2.00 GHz
 * Linux with AMD Ryzen Threadripper PRO 7975WX 32-Cores (64) @ 5.36 GHz
 
-| | | Time (sec) | | Memory (MB) | |
-| Architecture | Entries | Set (Python) | HLL (C) | Set (Python) | HLL (C) |
-|---|---|---|---|---|---|
-| M4 | 50,000 | 0.002 | 0.003 | 3 | 16 |
-| M4 | 500,000 | 0.043 | 0.021  | 30 | 16 |
-| M4 | 5,000,000 | 0.524 | 0.183 |309 | 16 |
-| M4 | 50,000,000 | 7.476 | 1.629 | 3,163 | 16 |
-| M4 | 500,000,000 | DFN | 23.210 | DNF | 16 |
-|&nbsp;| | | | |
-| Broadwell | 50,000 | 0.007 | 0.007 | 3 | 16 |
-| Broadwell | 500,000 | 0.174 | 0.092 | 30 | 16 |
-| Broadwell | 5,000,000 | 2.688 | 0.785 | 309 | 16 |
-| Broadwell | 50,000,000 | 36.986 | 9.144 | 3,163 | 16 |
-| Broadwell | 500,000,000 | 425.558 | 88.089 | 31,903 | 16 |
-|&nbsp;| | | | |
-| Threadripper | 50,000 | 0.003 | 0.002 | 3 | 16 |
-| Threadripper | 500,000 | 0.076 | 0.026 | 33 | 16 |
-| Threadripper | 5,000,000 | 1.049 | 0.182 | 336 | 16 |
-| Threadripper | 50,000,000 | 11.720 | 1.559 | 3,430 | 16 |
-| Threadripper | 500,000,000 | 167.704 | 13.471 | 34,573 | 16 |
+| Architecture | Entries     | Python Runime | C Runtime | Python Memory | C Memory |
+|--------------|-------------|---------------|-----------|---------------|----------|
+| M4           | 50,000      | 0.002s        | 0.003s    | 3 MB          | 16 MB    |
+| M4           | 500,000     | 0.043s        | 0.021s    | 30 MB         | 16 MB    |
+| M4           | 5,000,000   | 0.524s        | 0.183s    | 309 MB        | 16 MB    |
+| M4           | 50,000,000  | 7.476s        | 1.629s    | 3,163 MB      | 16 MB    |
+| M4           | 500,000,000 | DFN           | 23.210s   | DNF           | 16 MB    |
+| &nbsp;       |             |               |           |               |          |
+| Broadwell    | 50,000      | 0.007s        | 0.007s    | 3 MB          | 16 MB    |
+| Broadwell    | 500,000     | 0.174s        | 0.092s    | 30 MB         | 16 MB    |
+| Broadwell    | 5,000,000   | 2.688s        | 0.785s    | 309 MB        | 16 MB    |
+| Broadwell    | 50,000,000  | 36.986s       | 9.144s    | 3,163 MB      | 16 MB    |
+| Broadwell    | 500,000,000 | 425.558s      | 88.089s   | 31,903 MB     | 16 MB    |
+| &nbsp;       |             |               |           |               |          |
+| Threadripper | 50,000      | 0.003s        | 0.002s    | 3 MB          | 16 MB    |
+| Threadripper | 500,000     | 0.076s        | 0.026s    | 33 MB         | 16 MB    |
+| Threadripper | 5,000,000   | 1.049s        | 0.182s    | 336 MB        | 16 MB    |
+| Threadripper | 50,000,000  | 11.720s       | 1.559s    | 3,430 MB      | 16 MB    |
+| Threadripper | 500,000,000 | 167.704s      | 13.471s   | 34,573 MB     | 16 MB    |
 
 
 
