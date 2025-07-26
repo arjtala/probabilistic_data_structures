@@ -95,21 +95,33 @@ These tests will check for insertion into the HLL; counting the approximate numb
 
 #### Performance
 
-The following comparisons are between Python, where we loop over the list of phrases and insert them into a set, and C, using HLL. They were done on an Apple MacBook Pro with an M4 Pro and on Linux using 2 x Intel Core (Broadwell) (72) @ 2.00 GHz. The times are in seconds.
+The following comparisons are between Python, where we loop over the list of phrases and insert them into a set, and C, using HLL. They were done on three different systems:
+* Apple MacBook Pro with an M4 Pro
+* Linux with 2 x Intel Core (Broadwell) (72) @ 2.00 GHz
+* Linux with AMD Ryzen Threadripper PRO 7975WX 32-Cores (64) @ 5.36 GHz
 
-| | | Time (sec) | | Memory (MB) | |
-| Entries | Architecture | Python | C | Python | C |
-|---|---|---|---|---|---|
-| 50,000 | M4 | 0.0023 | 0.0028 | 2.9760 | 16 |
-| 500,000 | M4 | 0.0426 | 0.0209  | 30.0523 | 16 |
-| 5,000,000 | M4 | 0.5237 | 0.1831 |308.8392 | 16 |
-| 50,000,000 | M4 | 7.4756 | 1.6286 | 3163.2682 | 16 |
-| 500,000,000 | M4 | DFN | 23.2104 | DNF | 16 |
-| 50,000 | Broadwell | 0.0069 | 0.0074 | 2.9760 | 16 |
-| 500,000 | Broadwell | 0.1741 | 0.0918 | 30.0562 | 16 |
-| 5,000,000 | Broadwell | 2.6876 | 0.7849 | 308.8372 | 16 |
-| 50,000,000 | Broadwell | 36.9856 | 9.1438 | 3163.2476 | 16 |
-| 500,000,000 | Broadwell | 425.5580 | 88.0892 | 31902.8512 | 16 |
+|             |              | Time (sec)   |         | Memory (MB)  |         |
+| Entries     | Architecture | Set (Python) | HLL (C) | Set (Python) | HLL (C) |
+|-------------|--------------|--------------|---------|--------------|---------|
+| 50,000      | M4           | 0.002        | 0.003   | 3            | 16      |
+| 500,000     | M4           | 0.043        | 0.021   | 30           | 16      |
+| 5,000,000   | M4           | 0.524        | 0.183   | 309          | 16      |
+| 50,000,000  | M4           | 7.476        | 1.629   | 3,163        | 16      |
+| 500,000,000 | M4           | DFN          | 23.210  | DNF          | 16      |
+|             | &nbsp;       |              |         |              |         |
+| 50,000      | Broadwell    | 0.007        | 0.007   | 3            | 16      |
+| 500,000     | Broadwell    | 0.174        | 0.092   | 30           | 16      |
+| 5,000,000   | Broadwell    | 2.688        | 0.785   | 309          | 16      |
+| 50,000,000  | Broadwell    | 36.986       | 9.144   | 3,163        | 16      |
+| 500,000,000 | Broadwell    | 425.558      | 88.089  | 31,903       | 16      |
+|             | &nbsp;       |              |         |              |         |
+| 50,000      | Threadripper | 0.003        | 0.002   | 3            | 16      |
+| 500,000     | Threadripper | 0.076        | 0.026   | 33           | 16      |
+| 5,000,000   | Threadripper | 1.049        | 0.182   | 336          | 16      |
+| 50,000,000  | Threadripper | 11.720       | 1.559   | 3,430        | 16      |
+| 500,000,000 | Threadripper | 167.704      | 13.471  | 34,573       | 16      |
+
+
 
 ###  Tests
 
