@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "hash.h"
+#include "../lib/hash.h"
 
 typedef struct {
 	uint8_t *registers;
@@ -47,13 +47,10 @@ HLL *HLL_new(size_t p, ...) {
 	hll->q = size - p;
 	hll->num_bits_per_register = NUM_BITS_PER_REGISTER; // 6 bits covers up to 64 (more than enough)
 
-	hll->registers = malloc(hll->m * sizeof(uint8_t));
+	hll->registers = calloc(hll->m, sizeof(uint8_t));
 	if (!hll->registers) {
         fprintf(stderr, "Out of memory.\n");
         exit(EXIT_FAILURE);
-	}
-	for (size_t i = 0; i < hll->m; i++) {
-		hll->registers[i] = 0;
 	}
 	va_start(argp, p);
     hll->hash_function = va_arg(argp, hash64_func);
