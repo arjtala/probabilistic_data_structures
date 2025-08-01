@@ -74,19 +74,19 @@ void test_batch_phrases(int p, const char *filename) {
 		fprintf(stderr, "Error: filter is NULL\n");
 		exit(EXIT_FAILURE);
 	}
-	if (!filter->bitv) {
-		fprintf(stderr, "Error: filter->bitv is NULL\n");
+	if (!filter->bits) {
+		fprintf(stderr, "Error: filter->bits is NULL\n");
 		exit(EXIT_FAILURE);
 	}
-	if (!filter->bitv->data) {
-		fprintf(stderr, "Error: filter->bitv->data is NULL\n");
+	if (!filter->bits->data) {
+		fprintf(stderr, "Error: filter->bits->data is NULL\n");
 		exit(EXIT_FAILURE);
 	}
-	if (filter->bitv->size == 0) {
-		fprintf(stderr, "Error: filter->bitv->size is zero\n");
+	if (filter->bits->size == 0) {
+		fprintf(stderr, "Error: filter->bits->size is zero\n");
 		exit(EXIT_FAILURE);
 	}
-	double utilization = 100.0 * (double)countBitsSet(filter->bitv) / (double)filter->bitv->size;
+	double utilization = 100.0 * (double)countBitsSet(filter->bits) / (double)filter->bits->size;
 	printf("Bloom filter BitArray utilization: %.2f%%\n", utilization);
 
 	printf("Inserted %ld sentences (%zu unique)\n", count, unique);

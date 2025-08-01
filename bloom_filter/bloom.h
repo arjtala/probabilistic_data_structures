@@ -11,7 +11,7 @@
 #include "bitarray.h"
 
 typedef struct {
-	BitArray *bitv;
+	BitArray *bits;
 	hash64_func *hash_functions;
 	size_t num_functions;
 	size_t num_items;
@@ -34,7 +34,7 @@ BloomFilter *BloomFilter_new(size_t size, size_t num_functions, ...) {
         exit(EXIT_FAILURE);
     }
 	filter->num_items = 0;
-	filter->bitv = createBitArray(size);
+	filter->bits = createBitArray(size);
 	filter->num_functions = num_functions;
 	filter->hash_functions = malloc(sizeof(hash64_func)*num_functions);
 
@@ -64,16 +64,17 @@ BloomFilter *BloomFilter_default(size_t size) {
 }
 
 void free_BloomFilter(BloomFilter *filter) {
-    freeBitArray(filter->bitv);
+    freeBitArray(filter->bits);
     free(filter->hash_functions);
     free(filter);
 }
 
 void BloomFilter_put(BloomFilter *filter, const void *data, size_t size) {
 
-	for (size_t i =0; i < filter->num_functions; i++) {
+	for (size_t i = 0; i < filter->num_functions; i++) {
 		uint64_t hash_val = filter->hash_functions[i](data, size);
-		setBit(filter->bitv, hash_val % filter->bitv->size);
+		size_t bit_index = hash_val % filter->bits->size;
+		BIT_SET(filter->bits->data, bit_index);
 	}
 	filter->num_items++;
 }
@@ -85,7 +86,8 @@ void BloomFilter_putStr(BloomFilter *filter, const char *str) {
 bool BloomFilter_exists(BloomFilter *filter, const void *data, size_t size) {
 	for (size_t i = 0; i < filter->num_functions; i++) {
 		uint64_t hash_val = filter->hash_functions[i](data, size);
-		if (!getBit(filter->bitv, hash_val % filter->bitv->size)) {
+		size_t bit_index = hash_val % filter->bits->size;
+		if (!BIT_GET(filter->bits->data, bit_index)) {
 			return false;
 		}
 	}
@@ -96,16 +98,16 @@ bool BloomFilter_strExists(BloomFilter *filter, const char *str) {
 	return BloomFilter_exists(filter, str, strlen(str));
 }
 
-size_t countBitsSet(BitArray *bitv) {
-    if (!bitv || !bitv->data) {
+size_t countBitsSet(BitArray *bits) {
+    if (!bits || !bits->data) {
         fprintf(stderr, "Invalid BitArray pointer\n");
         return 0;
     }
 
     size_t count = 0;
-	size_t num_bytes = (bitv->size + 63) / 64; // Number of 64-bit elements
+	size_t num_bytes = (bits->size + 63) / 64; // Number of 64-bit elements
     for (size_t i = 0; i < num_bytes; i++) {
-        uint64_t element = bitv->data[i];
+        uint64_t element = bits->data[i];
         // Count bits in the byte (using Kernighan's algorithm)
         while (element) {
             element &= (element - 1); // clear the lowest set bit

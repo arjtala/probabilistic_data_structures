@@ -55,7 +55,7 @@ void test_BitArray_display(void) {
 	printf("Built expected BitArray (allocated size = %lu): %s\n", sizeof(expected), expected);
 
 	printf("Set position 3:\n");
-    setBit(bv, 3); // Set bit at index 3
+    BIT_SET(bv->data, 3); // Set bit at index 3
 	flipExpectedValue(expected, 3, sizeOfExpected);
 	printf("Expected: ");
 	printf("%s\n", expected);
@@ -63,7 +63,7 @@ void test_BitArray_display(void) {
 	printBits(bv, sizeOfExpected);
 
 	printf("Flip position 5:\n");
-    setBit(bv, 5); // Toggle bit at index 5
+    BIT_SET(bv->data, 5); // Toggle bit at index 5
 	flipExpectedValue(expected, 5, sizeOfExpected);
 	printf("Expected: ");
 	printf("%s\n", expected);
@@ -71,7 +71,7 @@ void test_BitArray_display(void) {
 	printBits(bv, sizeOfExpected);
 
 	printf("Clear position 3:\n");
-    flipBit(bv, 3); // Flip bit at index 3
+    BIT_FLIP(bv->data, 3); // Flip bit at index 3
 	flipExpectedValue(expected, 3, sizeOfExpected);
 	printf("Expected: ");
 	printf("%s\n", expected);
@@ -85,14 +85,14 @@ void test_BitArray_values(void) {
 	size_t sizeOfExpected = 6;
 	size_t pos = 5;
     BitArray *bv = createBitArray(sizeOfExpected);
-    setBit(bv, pos);
-	val = getBit(bv, pos);
+    BIT_SET(bv->data, pos);
+	val = BIT_GET(bv->data, pos);
 	exp = 1;
 	printf("Setting bit in position %zu: ", pos);
 	ASSERT(val == exp, exp, val);
 
-	clearBit(bv, pos);
-	val = getBit(bv, pos);
+	BIT_CLEAR(bv->data, pos);
+	val = BIT_GET(bv->data, pos);
 	exp = 0;
 	printf("Clearing bit in position %zu: ", pos);
 	ASSERT(val == exp, exp, val);
@@ -127,7 +127,7 @@ void test_bloom_filter(void) {
 	printf("Hash: %llu (%llu)", hash, hash % N);
 
 	BitArray *tmp_bit = createBitArray(N);
-	setBit(tmp_bit, hash % N);
+	BIT_SET(tmp_bit->data, hash % N);
 	printBits(tmp_bit, N);
 
 	const int num_elements = 1000;
@@ -139,7 +139,7 @@ void test_bloom_filter(void) {
 	}
 
 	printf("BitArray utilization: %.2f%%\n",
-		   100.0 * countBitsSet(filter->bitv) / filter->bitv->size);
+		   100.0 * countBitsSet(filter->bits) / filter->bits->size);
 }
 
 int main(void) {
