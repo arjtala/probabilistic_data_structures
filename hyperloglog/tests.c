@@ -3,9 +3,9 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <time.h>
-#include "bloom.h"
+#include "../bloom_filter/bloom.h"
+#include "../lib/utilities.h"
 #include "hll.h"
-#include "utilities.h"
 
 
 void test_time_insertion(int p, char *filename) {

@@ -7,8 +7,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "hash.h"
-#include "bitarray.h"
+#include "../lib/hash.h"
+#include "../lib/bitarray.h"
 
 typedef struct {
 	BitArray *bits;
@@ -28,7 +28,7 @@ void free_BloomFilter(BloomFilter *filter);
 BloomFilter *BloomFilter_new(size_t size, size_t num_functions, ...) {
 	va_list argp;
 
-	BloomFilter *filter = malloc(sizeof(*filter));
+	BloomFilter *filter = (BloomFilter *)malloc(sizeof(*filter));
     if (NULL==filter) {
         fprintf(stderr, "Out of memory.\n");
         exit(EXIT_FAILURE);
@@ -36,7 +36,7 @@ BloomFilter *BloomFilter_new(size_t size, size_t num_functions, ...) {
 	filter->num_items = 0;
 	filter->bits = createBitArray(size);
 	filter->num_functions = num_functions;
-	filter->hash_functions = malloc(sizeof(hash64_func)*num_functions);
+	filter->hash_functions = (hash64_func*)malloc(sizeof(hash64_func)*num_functions);
 
     if (NULL==filter->hash_functions) {
         fprintf(stderr, "Out of memory.\n");

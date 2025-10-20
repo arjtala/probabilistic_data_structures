@@ -31,7 +31,7 @@ char **load_sentences(const char *filename, long *out_count) {
 		exit(EXIT_FAILURE);
     }
 
-    char **sentences = malloc(sizeof(char *) * MAX_LINES);
+    char **sentences = (char **)malloc(MAX_LINES * sizeof(char*));
     if (!sentences) {
         fprintf(stderr, "Memory allocation failed\n");
         fclose(file);

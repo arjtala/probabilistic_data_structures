@@ -23,14 +23,14 @@ typedef struct {
 } BitArray;
 
 BitArray *createBitArray(size_t num_bits) {
-	BitArray *bits = malloc(sizeof(BitArray));
+	BitArray *bits = (BitArray*)malloc(sizeof(BitArray));
 	if (bits == NULL) {
 		perror("Failed to allocate BitArray struct");
 		return NULL;
 	}
 
 	size_t num_units = (num_bits + BITS_PER_UNIT - 1) / BITS_PER_UNIT;
-	bits->data = calloc(num_units, sizeof(unit_t));
+	bits->data = (unit_t*)calloc(num_units, sizeof(unit_t));
     if (NULL==bits->data) {
         fprintf(stderr, "Failed to allocate BitArray data.\n");
 		free(bits);

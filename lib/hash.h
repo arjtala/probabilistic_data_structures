@@ -1,6 +1,7 @@
 #ifndef HASHF_H
 #define HASHF_H
 
+#include <stdint.h>
 #define DJB2_INIT 5381
 #define HASH64_NUM_FUNCTIONS 2
 #define FNV_OFFSET 14695981039346656037UL
@@ -13,7 +14,7 @@ typedef uint64_t (*hash64_func)(const void *data, size_t length);
 
 uint64_t djb2(const void *buff, size_t length) {
     uint64_t hash = DJB2_INIT;
-    const uint8_t *data = buff;
+    const uint8_t *data = (const uint8_t*)buff;
     for(size_t i = 0; i < length; i++) {
          hash = ((hash << 5) + hash) + data[i];
     }
@@ -22,7 +23,7 @@ uint64_t djb2(const void *buff, size_t length) {
 
 uint64_t sdbm(const void *buff, size_t length) {
 	uint64_t hash = 0;
-    const uint8_t *data = buff;
+    const uint8_t *data = (const uint8_t*)buff;
     for(size_t i = 0; i < length; i++) {
         hash = data[i] + (hash << 6) + (hash << 16) - hash;
     }
@@ -33,7 +34,7 @@ uint64_t sdbm(const void *buff, size_t length) {
 uint64_t hash_64(const void *buff, size_t len) {
 	uint64_t seed = 14695981039346656037ULL;
 	uint64_t prime = 1099511628211ULL;
-    const uint8_t *data = buff;
+    const uint8_t *data = (const uint8_t*)buff;
     uint64_t h = seed;
     for (size_t i = 0; i < len; ++i) {
         h ^= data[i];

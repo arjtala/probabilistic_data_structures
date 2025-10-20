@@ -1,11 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <string.h>
-#include "bitarray.h"
+#include "../lib/bitarray.h"
+#include "../lib/hash.h"
+#include "../lib/utilities.h"
 #include "bloom.h"
-#include "hash.h"
-#include "utilities.h"
-
 
 void printArray(int *arr) {
 	printf("[");

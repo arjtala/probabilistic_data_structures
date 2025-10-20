@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "../lib/hash.h"
+#include "../lib/bitarray.h"
 
 typedef struct {
 	uint8_t *registers;
@@ -37,7 +38,7 @@ HLL *HLL_new(size_t p, ...) {
 		exit(EXIT_FAILURE);
 	}
 
-	HLL *hll = malloc(sizeof(*hll));
+	HLL *hll = (HLL*)malloc(sizeof(*hll));
 	if (NULL==hll) {
         fprintf(stderr, "Out of memory.\n");
         exit(EXIT_FAILURE);
@@ -47,7 +48,7 @@ HLL *HLL_new(size_t p, ...) {
 	hll->q = size - p;
 	hll->num_bits_per_register = NUM_BITS_PER_REGISTER; // 6 bits covers up to 64 (more than enough)
 
-	hll->registers = calloc(hll->m, sizeof(uint8_t));
+	hll->registers = (uint8_t*)calloc(hll->m, sizeof(uint8_t));
 	if (!hll->registers) {
         fprintf(stderr, "Out of memory.\n");
         exit(EXIT_FAILURE);
