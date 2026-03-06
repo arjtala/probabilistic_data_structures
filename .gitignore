@@ -3,4 +3,5 @@
 */*.out
 */*.txt
 */build/
+build/
 phrases/
