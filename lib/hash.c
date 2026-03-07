@@ -5,28 +5,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-uint64_t djb2(const void *buff, size_t length) {
+uint64_t djb2(const void *buf, size_t length) {
   uint64_t hash = DJB2_INIT;
-  const uint8_t *data = (const uint8_t *)buff;
+  const uint8_t *data = (const uint8_t *)buf;
   for (size_t i = 0; i < length; i++) {
     hash = ((hash << 5) + hash) + data[i];
   }
   return hash;
 }
 
-uint64_t sdbm(const void *buff, size_t length) {
+uint64_t sdbm(const void *buf, size_t length) {
   uint64_t hash = 0;
-  const uint8_t *data = (const uint8_t *)buff;
+  const uint8_t *data = (const uint8_t *)buf;
   for (size_t i = 0; i < length; i++) {
     hash = data[i] + (hash << 6) + (hash << 16) - hash;
   }
   return hash;
 }
 
-uint64_t hash_64(const void *buff, size_t len) {
+// FNV-1a
+uint64_t hash_64(const void *buf, size_t len) {
   uint64_t seed = 14695981039346656037ULL;
   uint64_t prime = 1099511628211ULL;
-  const uint8_t *data = (const uint8_t *)buff;
+  const uint8_t *data = (const uint8_t *)buf;
   uint64_t h = seed;
   for (size_t i = 0; i < len; ++i) {
     h ^= data[i];
@@ -35,7 +36,8 @@ uint64_t hash_64(const void *buff, size_t len) {
   return h;
 }
 
-uint64_t fnv_64(void *buf, size_t len, uint64_t hval) {
+// FNV-1
+uint64_t fnv_64(const void *buf, size_t len, uint64_t hval) {
   unsigned char *bp = (unsigned char *)buf; /* start of buffer */
   unsigned char *be = bp + len;             /* beyond end of buffer */
 
@@ -61,10 +63,10 @@ uint64_t murmur64(const void *key, size_t len, uint64_t seed) {
   const uint64_t c2 = 0x4cf5ad432745937fULL;
 
   // Body
-  const uint64_t *blocks = (const uint64_t *)(data);
+  uint64_t k1, k2;
   for (int i = 0; i < nblocks; i++) {
-    uint64_t k1 = blocks[i * 2 + 0];
-    uint64_t k2 = blocks[i * 2 + 1];
+    memcpy(&k1, data + i * 16, 8);
+    memcpy(&k2, data + i * 16 + 8, 8);
 
     k1 *= c1;
     k1 = (k1 << 31) | (k1 >> (64 - 31));
@@ -85,8 +87,8 @@ uint64_t murmur64(const void *key, size_t len, uint64_t seed) {
 
   // Tail
   const uint8_t *tail = (const uint8_t *)(data + nblocks * 16);
-  uint64_t k1 = 0;
-  uint64_t k2 = 0;
+  k1 = 0;
+  k2 = 0;
 
   switch (len & 15) {
   case 15:
@@ -146,7 +148,7 @@ uint64_t murmur64(const void *key, size_t len, uint64_t seed) {
   return h1;
 }
 
-HashTable *HashTable_create(void) {
+HashTable *HashTable_create(void (*free_value)(void *)) {
   HashTable *ht = malloc(sizeof(HashTable));
   if (NULL == ht) {
     fprintf(stderr, "Unable to initialize HashTable: out of memory.\n");
@@ -160,12 +162,17 @@ HashTable *HashTable_create(void) {
     free(ht);
     exit(EXIT_FAILURE);
   }
+  ht->free_value = free_value;
   return ht;
 }
 
 void HashTable_free(HashTable *ht) {
   for (size_t i = 0; i < ht->capacity; ++i) {
-    free((void *)ht->entries[i].key);
+    if (ht->entries[i].key != NULL) {
+      free((void*)ht->entries[i].key);
+      if (ht->free_value)
+        ht->free_value(ht->entries[i].value);
+    }
   }
   free(ht->entries);
   free(ht);
@@ -248,9 +255,6 @@ static bool HashTable_expand(HashTable *ht) {
 
 const char *HashTable_set(HashTable *ht, const char *key, void *value) {
   assert(value != NULL);
-  if (value == NULL) {
-    return NULL;
-  }
 
   if (ht->length >= ht->capacity / 2) {
     if (!HashTable_expand(ht)) {

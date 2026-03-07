@@ -1,93 +1,92 @@
 #include "bloom.h"
 
 BloomFilter *BloomFilter_new(size_t size, size_t num_functions, ...) {
-	va_list argp;
+  va_list argp;
 
-	BloomFilter *filter = (BloomFilter *)malloc(sizeof(*filter));
-    if (NULL==filter) {
-        fprintf(stderr, "Out of memory.\n");
-        exit(EXIT_FAILURE);
-    }
-	filter->num_items = 0;
-	filter->bits = createBitArray(size);
-	filter->num_functions = num_functions;
-	filter->hash_functions = (hash64_func*)malloc(sizeof(hash64_func)*num_functions);
+  BloomFilter *filter = (BloomFilter *)malloc(sizeof(*filter));
+  if (NULL == filter) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(EXIT_FAILURE);
+  }
+  filter->num_items = 0;
+  filter->bits = createBitArray(size);
+  filter->num_functions = num_functions;
+  filter->hash_functions = (hash64_func *)malloc(sizeof(hash64_func) * num_functions);
 
-    if (NULL==filter->hash_functions) {
-        fprintf(stderr, "Out of memory.\n");
-        exit(EXIT_FAILURE);
-    }
+  if (NULL == filter->hash_functions) {
+    fprintf(stderr, "Out of memory.\n");
+    exit(EXIT_FAILURE);
+  }
 
-	va_start(argp, num_functions);
-    for(size_t i = 0; i < num_functions; i++) {
-        filter->hash_functions[i] = va_arg(argp, hash64_func);
-    }
-	va_end(argp);
-	return filter;
+  va_start(argp, num_functions);
+  for (size_t i = 0; i < num_functions; i++) {
+    filter->hash_functions[i] = va_arg(argp, hash64_func);
+  }
+  va_end(argp);
+  return filter;
 }
 
 uint64_t murmur64a(const void *key, size_t len) {
-    return murmur64(key, len, 42);
+  return murmur64(key, len, 42);
 }
 
 uint64_t murmur64b(const void *key, size_t len) {
-    return murmur64(key, len, 1337);
+  return murmur64(key, len, 1337);
 }
 
 BloomFilter *BloomFilter_default(size_t size) {
-	return BloomFilter_new(size, 2, murmur64a, murmur64b);
+  return BloomFilter_new(size, 2, murmur64a, murmur64b);
 }
 
 void free_BloomFilter(BloomFilter *filter) {
-    freeBitArray(filter->bits);
-    free(filter->hash_functions);
-    free(filter);
+  freeBitArray(filter->bits);
+  free(filter->hash_functions);
+  free(filter);
 }
 
 void BloomFilter_put(BloomFilter *filter, const void *data, size_t size) {
-
-	for (size_t i = 0; i < filter->num_functions; i++) {
-		uint64_t hash_val = filter->hash_functions[i](data, size);
-		size_t bit_index = hash_val % filter->bits->size;
-		BIT_SET(filter->bits->data, bit_index);
-	}
-	filter->num_items++;
+  for (size_t i = 0; i < filter->num_functions; i++) {
+    uint64_t hash_val = filter->hash_functions[i](data, size);
+    size_t bit_index = hash_val % filter->bits->size;
+    BIT_SET(filter->bits->data, bit_index);
+  }
+  filter->num_items++;
 }
 
 void BloomFilter_putStr(BloomFilter *filter, const char *str) {
-	BloomFilter_put(filter, str, strlen(str));
+  BloomFilter_put(filter, str, strlen(str));
 }
 
 bool BloomFilter_exists(BloomFilter *filter, const void *data, size_t size) {
-	for (size_t i = 0; i < filter->num_functions; i++) {
-		uint64_t hash_val = filter->hash_functions[i](data, size);
-		size_t bit_index = hash_val % filter->bits->size;
-		if (!BIT_GET(filter->bits->data, bit_index)) {
-			return false;
-		}
-	}
-	return true;
+  for (size_t i = 0; i < filter->num_functions; i++) {
+    uint64_t hash_val = filter->hash_functions[i](data, size);
+    size_t bit_index = hash_val % filter->bits->size;
+    if (!BIT_GET(filter->bits->data, bit_index)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool BloomFilter_strExists(BloomFilter *filter, const char *str) {
-	return BloomFilter_exists(filter, str, strlen(str));
+  return BloomFilter_exists(filter, str, strlen(str));
 }
 
 size_t countBitsSet(BitArray *bits) {
-    if (!bits || !bits->data) {
-        fprintf(stderr, "Invalid BitArray pointer\n");
-        return 0;
-    }
+  if (!bits || !bits->data) {
+    fprintf(stderr, "Invalid BitArray pointer\n");
+    return 0;
+  }
 
-    size_t count = 0;
-	size_t num_bytes = (bits->size + 63) / 64; // Number of 64-bit elements
-    for (size_t i = 0; i < num_bytes; i++) {
-        uint64_t element = bits->data[i];
-        // Count bits in the byte (using Kernighan's algorithm)
-        while (element) {
-            element &= (element - 1); // clear the lowest set bit
-            count++;
-        }
+  size_t count = 0;
+  size_t num_bytes = (bits->size + 63) / 64;  // Number of 64-bit elements
+  for (size_t i = 0; i < num_bytes; i++) {
+    uint64_t element = bits->data[i];
+    // Count bits in uint64_t (using Kernighan's algorithm)
+    while (element) {
+      element &= (element - 1);  // clear the lowest set bit
+      count++;
     }
-    return count;
+  }
+  return count;
 }

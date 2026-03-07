@@ -14,13 +14,12 @@
 #define NUM_BITS_PER_REGISTER 6
 
 typedef struct {
-	uint8_t *registers;
-	hash64_func hash_function;
-	size_t num_bits_per_register;
-	size_t num_functions;
-	size_t p; // Precision parameter that controls relative estimation error
-	size_t q; // Using a (p+q)-bit hash value
-	size_t m; // Number of registers
+  uint8_t *registers;
+  hash64_func hash_function;
+  size_t num_bits_per_register;
+  size_t p;  // Precision parameter that controls relative estimation error
+  size_t q;  // Using a (p+q)-bit hash value
+  size_t m;  // Number of registers
 } HLL;
 
 HLL *HLL_new(size_t p, ...);

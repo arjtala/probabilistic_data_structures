@@ -35,7 +35,6 @@ void printBits(BitArray *bits, size_t size) {
 }
 
 void unit_to_binary(unit_t input, BitArray *bits) {
-	printf("%llu\n", (unit_t)8*sizeof(unit_t));
     if (bits->size < 8*sizeof(unit_t)) {
         fprintf(stderr, "BitArray size too small for %llu\n", input);
         exit(EXIT_FAILURE);

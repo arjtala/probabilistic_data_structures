@@ -15,10 +15,10 @@
 #include <stdint.h>
 
 typedef uint64_t (*hash64_func)(const void *data, size_t length);
-uint64_t djb2(const void *buff, size_t length);
-uint64_t sdbm(const void *buff, size_t length);
-uint64_t hash_64(const void *buff, size_t len);
-uint64_t fnv_64(void *buf, size_t len, uint64_t hval);
+uint64_t djb2(const void *buf, size_t length);
+uint64_t sdbm(const void *buf, size_t length);
+uint64_t hash_64(const void *buf, size_t len);
+uint64_t fnv_64(const void *buf, size_t len, uint64_t hval);
 uint64_t murmur64(const void *key, size_t len, uint64_t seed);
 
 typedef struct HashTable HashTable;
@@ -37,8 +37,9 @@ struct HashTable {
   HashTableEntry *entries;
   size_t capacity;
   size_t length;
+  void (*free_value)(void *);  // NULL = caller owns values
 };
-HashTable *HashTable_create(void);
+HashTable *HashTable_create(void (*free_value)(void *));
 void HashTable_free(HashTable *ht);
 void *HashTable_get(HashTable *ht, const char *key);
 const char *HashTable_set(HashTable *ht, const char *key, void *value);
