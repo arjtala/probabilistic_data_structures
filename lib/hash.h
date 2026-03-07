@@ -41,7 +41,7 @@ struct HashTable {
 HashTable *HashTable_create(void);
 void HashTable_free(HashTable *ht);
 void *HashTable_get(HashTable *ht, const char *key);
-const char *HashTable_set(HashTable *ht, const char *key, const char *value);
+const char *HashTable_set(HashTable *ht, const char *key, void *value);
 size_t HashTable_size(HashTable *ht);
 HashTableIterator HashTable_iterator(HashTable *ht);
 bool HashTable_next(HashTableIterator *hti);

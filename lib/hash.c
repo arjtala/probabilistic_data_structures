@@ -246,10 +246,10 @@ static bool HashTable_expand(HashTable *ht) {
   return true;
 }
 
-const char *HashTable_set(HashTable *ht, const char *key, const char *value) {
+const char *HashTable_set(HashTable *ht, const char *key, void *value) {
   assert(value != NULL);
   if (value == NULL) {
-    return NULL
+    return NULL;
   }
 
   if (ht->length >= ht->capacity / 2) {
@@ -258,7 +258,8 @@ const char *HashTable_set(HashTable *ht, const char *key, const char *value) {
     }
   }
   // Set entry and update length
-  HashTable_set_entry(ht->entries, ht->capacity, key, value, &ht->length);
+  return HashTable_set_entry(ht->entries, ht->capacity, key, value,
+                             &ht->length);
 }
 
 size_t HashTable_size(HashTable *ht) { return ht->length; }
