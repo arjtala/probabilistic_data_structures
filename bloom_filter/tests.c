@@ -6,9 +6,9 @@
 #include "../lib/utilities.h"
 #include "bloom.h"
 
-void printArray(int *arr) {
+void printArray(int *arr, size_t len) {
   printf("[");
-  for (size_t i = 0; i < sizeof(arr); i++) {
+  for (size_t i = 0; i < len; i++) {
     printf("%d ", arr[i]);
   }
   printf("]\n");

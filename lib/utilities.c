@@ -12,7 +12,8 @@ char **load_sentences(const char *filename, long *out_count) {
 		exit(EXIT_FAILURE);
     }
 
-    char **sentences = (char **)malloc(MAX_LINES * sizeof(char*));
+    size_t capacity = INITIAL_CAPACITY;
+    char **sentences = (char **)malloc(capacity * sizeof(char*));
     if (!sentences) {
         fprintf(stderr, "Memory allocation failed\n");
         fclose(file);
@@ -29,6 +30,17 @@ char **load_sentences(const char *filename, long *out_count) {
 			continue;
 		}
 
+        // Grow array if needed
+        if ((size_t)count >= capacity) {
+            capacity *= 2;
+            char **tmp = (char **)realloc(sentences, capacity * sizeof(char*));
+            if (!tmp) {
+                fprintf(stderr, "Memory allocation failed\n");
+                exit(EXIT_FAILURE);
+            }
+            sentences = tmp;
+        }
+
         // Allocate memory and copy the sentence
         sentences[count] = strdup(buffer);
         if (!sentences[count]) {
@@ -36,10 +48,6 @@ char **load_sentences(const char *filename, long *out_count) {
 			exit(EXIT_FAILURE);
         }
         count++;
-        if (count >= MAX_LINES) {
-            fprintf(stderr, "Too many lines (max %d)\n", MAX_LINES);
-            break;
-        }
     }
 
     fclose(file);

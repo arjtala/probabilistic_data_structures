@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define MAX_LINE_LEN 2048
-#define MAX_LINES 1000000000
+#define INITIAL_CAPACITY 1024
 #define SEPARATOR "\n\n******************************\n"
 #define ASSERT(condition, expected, value) do {	\
 	printf("%d == %d\n", expected, value);			\

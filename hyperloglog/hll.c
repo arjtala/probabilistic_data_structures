@@ -148,6 +148,24 @@ double HLL_count(HLL *hll) {
   return raw_estimate;
 }
 
+void HLL_merge(HLL *dest, const HLL *src) {
+  if (!dest || !src) {
+    fprintf(stderr, "Error: One or both HLL inputs are NULL.\n");
+    return;
+  }
+
+  if (dest->p != src->p || dest->m != src->m) {
+    fprintf(stderr, "Error: HLLs have incompatible precision or size.\n");
+    return;
+  }
+
+  for (size_t i = 0; i < dest->m; ++i) {
+    if (src->registers[i] > dest->registers[i]) {
+      dest->registers[i] = src->registers[i];
+    }
+  }
+}
+
 HLL *HLL_merge_copy(const HLL *a, const HLL *b) {
   if (!a || !b) {
     fprintf(stderr, "Error: One or both HLL inputs are NULL.\n");

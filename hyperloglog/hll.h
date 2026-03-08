@@ -27,7 +27,7 @@ HLL *HLL_default(size_t p);
 void freeHLL(HLL *hll);
 void HLL_add(HLL *hll, const void *data, size_t size);
 double HLL_count(HLL *hll);
-void HLL_merge(HLL *hll_a, HLL *hll_b);
+void HLL_merge(HLL *dest, const HLL *src);
 HLL *HLL_merge_copy(const HLL *a, const HLL *b);
 size_t HLL_memory_usage(const HLL *hll);
 
