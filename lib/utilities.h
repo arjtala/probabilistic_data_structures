@@ -4,6 +4,7 @@
 #include <string.h>
 
 #define MAX_LINE_LEN 2048
+#define INITIAL_SENTENCES_MAX_LINES 1024
 #define MAX_LINES 1000000000
 #define SEPARATOR "\n\n******************************\n"
 #define ASSERT(condition, expected, value) do {	\
